@@ -10,6 +10,7 @@ sns.set()
 
 sys.path.append('.')
 sys.path.append('..')
+from scripts.plot import *
 from scripts.Jaco import Jaco
 
 
@@ -28,78 +29,6 @@ def init_pybullet(Hz=240):
     timestep = 1 / Hz
     p.setTimeStep(timestep)
     p.loadURDF('plane.urdf')
-
-
-def plot_position(fig, target, observation):
-    dim = target.shape[0]
-    col = 2
-    row = int(dim / col) + 1
-
-    for i in range(dim):
-        ax = fig.add_subplot(row, col, i + 1)
-        ax.plot(target[i], color='tab:gray', label='Ground Truth')
-        ax.plot(observation[i], color='tab:blue',
-                alpha=0.5, label='Estimated Value')
-        ax.set_title('joint {}'.format(i + 1))
-        if i % col == 0:
-            ax.set_ylabel('')
-        if i >= dim - col:
-            ax.set_xlabel('time [s]')
-        else:
-            ax.tick_params(bottom=False, labelbottom=False)
-        if i == 0:
-            ax.legend(loc='upper right')
-    fig.align_labels()
-
-
-def plot_torque(fig, y, pred):
-    y = np.array(y)
-    pred = np.array(pred)
-    # t = np.arange(len(y)) * 0.002
-    dim = y.shape[0]
-    col = 2
-    row = int(dim / col) + 1
-
-    for i in range(dim):
-        ax = fig.add_subplot(row, col, i + 1)
-        # ax.plot(y[i], color='tab:gray', label='Ground Truth')
-        ax.plot(pred[i], color='tab:blue',
-                alpha=0.5, label='Estimated Value')
-        ax.set_title('joint {}'.format(i + 1))
-        if i % col == 0:
-            ax.set_ylabel('torque [Nm]')
-        if i >= dim - col:
-            ax.set_xlabel('time [s]')
-        else:
-            ax.tick_params(bottom=False, labelbottom=False)
-        if i == 0:
-            ax.legend(loc='upper right')
-    fig.align_labels()
-
-
-def plot_reaction_force(fig, y, pred):
-    y = np.array(y)
-    pred = np.array(pred)
-    # t = np.arange(len(y)) * 0.002
-    dim = y.shape[0]
-    col = 2
-    row = int(dim / col) + 1
-
-    for i in range(dim):
-        ax = fig.add_subplot(row, col, i + 1)
-        # ax.plot(y[i], color='tab:gray', label='Ground Truth')
-        ax.plot(pred[i], color='tab:blue',
-                alpha=0.5, label='Estimated Value')
-        ax.set_title('joint {}'.format(i + 1))
-        if i % col == 0:
-            ax.set_ylabel('reaction force [Nm]')
-        if i >= dim - col:
-            ax.set_xlabel('time [s]')
-        else:
-            ax.tick_params(bottom=False, labelbottom=False)
-        if i == 0:
-            ax.legend(loc='upper right')
-    fig.align_labels()
 
 
 def main():
@@ -125,20 +54,20 @@ def main():
     for t in tqdm(range(Hz * 20)):
         # pos = [-0.6 + 0.2 * np.cos(t / 240), 0.2 * np.sin(t / 240), 0.4]
         # robot.moveEndEffector(pos)
-        # robot.move_joints([
-        #     np.pi + np.cos(t/240),
-        #     np.pi + np.cos(t/240),
-        #     np.pi + np.cos(t/240),
-        #     np.pi + np.cos(t/240),
-        #     np.pi + np.cos(t/240),
-        #     np.pi + np.cos(t/240),
-        #     np.pi + np.cos(t/240),
+        # robot.setJointsAngle([
+        #     np.pi + np.sin(t / 240),
+        #     np.pi + np.sin(t / 240),
+        #     np.pi + np.sin(t / 240),
+        #     np.pi + np.sin(t / 240),
+        #     np.pi + np.sin(t / 240),
+        #     np.pi + np.sin(t / 240),
+        #     np.pi + np.sin(t / 240),
         # ])
         position, velocity, torque, reactionForce = robot.getJointState()
         acceleration = (last_velocity - velocity) * ts
-        input = target_pos - position
+        input = target_pos - position + acceleration
         robot.setJointsVelocity(input)
-        last_velocity = velocity
+        # last_velocity = velocity
         # print(p.getDynamicsInfo(robot.robotId, 2))
         # torque_hat = robot.calcID(position, velocity, acceleration)
 

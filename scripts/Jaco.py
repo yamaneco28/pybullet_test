@@ -1,11 +1,5 @@
 import pybullet as p
-import pybullet_data
-from PIL import Image
 import numpy as np
-from tqdm import tqdm
-import matplotlib.pyplot as plt
-import seaborn as sns
-sns.set()
 
 
 class Jaco():
@@ -15,6 +9,7 @@ class Jaco():
             pos,
             p.getQuaternionFromEuler(rot))
         self.eeId = 9
+        self.joint_id_list = range(2, 9)
         self.joint_num = p.getNumJoints(self.robotId)
         print('joints_num', self.joint_num)
         for i in range(self.joint_num):
@@ -22,6 +17,34 @@ class Jaco():
             info = p.getJointInfo(self.robotId, i)
             print(i, info[1])
         self.reset()
+        self.M, self.D, self.J = self.getDynamicsInfos()
+        print('M:', self.M)
+        print('D:', self.D)
+        print('J:', self.J)
+        self.changeDynamics()
+        self.M, self.D, self.J = self.getDynamicsInfos()
+        print('M:', self.M)
+        print('D:', self.D)
+        print('J:', self.J)
+
+    def getDynamicsInfo(self, jointId):
+        mass, friction, inertia, pos, rot, _, _, _, _, _, _, _ = p.getDynamicsInfo(self.robotId, jointId)
+        return mass, friction, inertia
+
+    def getDynamicsInfos(self):
+        M, D, J = [], [], []
+        for i in self.joint_id_list:
+            mass, friction, inertia = self.getDynamicsInfo(i)
+            M.append(mass)
+            D.append(friction)
+            J.append(inertia[2])
+        return M, D, J
+
+    def changeDynamics(self):
+        for i in range(len(self.joint_id_list)):
+            mass = self.M[i] * np.random.normal(loc=1, scale=0.01)
+            friction = self.D[i] * np.random.normal(loc=1, scale=0.01)
+            p.changeDynamics(self.robotId, self.joint_id_list[i], mass, friction)
 
     def calcIK(self, pos=[1, 1, 1], rot=[0, 0, 0]):
         return p.calculateInverseKinematics(self.robotId, self.eeId, pos, rot)
@@ -31,7 +54,7 @@ class Jaco():
 
     def reset(self):
         reset_point = self.calcIK([-0.5, -0.5, 0.5], [0, 0, 0])
-        for i in range(2, self.eeId):
+        for i in self.joint_id_list:
             p.resetJointState(self.robotId, i, reset_point[i])
 
     def moveEndEffector(self, pos=[1, 1, 1], rot=[0, 0, 0]):
@@ -42,7 +65,7 @@ class Jaco():
                        np.pi, np.pi, np.pi, np.pi, np.pi, np.pi, np.pi]):
         p.setJointMotorControlArray(
             self.robotId,
-            range(2, 9),
+            self.joint_id_list,
             p.POSITION_CONTROL,
             targetPositions=jointAngle,
         )
@@ -50,7 +73,7 @@ class Jaco():
     def setJointsVelocity(self, jointVelocity=[0, 0, 0, 0, 0, 0, 0]):
         p.setJointMotorControlArray(
             self.robotId,
-            range(2, 9),
+            self.joint_id_list,
             p.VELOCITY_CONTROL,
             targetVelocities=jointVelocity,
         )
@@ -58,7 +81,7 @@ class Jaco():
     def setJointsTorque(self, jointTorque=[0, 0, 0, 0, 0, 0, 0]):
         p.setJointMotorControlArray(
             self.robotId,
-            range(2, 9),
+            self.joint_id_list,
             p.TORQUE_CONTROL,
             force=jointTorque,
         )
@@ -68,7 +91,7 @@ class Jaco():
         velocity_list = []
         reactionForce_list = []
         torque_list = []
-        for i in range(2, 9):
+        for i in self.joint_id_list:
             position, velocity, reactionForce, torque = p.getJointState(
                 self.robotId, i)
             position_list.append(position)
