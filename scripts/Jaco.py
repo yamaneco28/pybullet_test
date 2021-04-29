@@ -16,7 +16,10 @@ class Jaco():
             p.enableJointForceTorqueSensor(self.robotId, i)
             info = p.getJointInfo(self.robotId, i)
             print(i, info[1])
-        self.reset()
+        # self.reset_joint_angle = self.calcIK([-0.8, 0.0, 0.8])
+        # self.reset_joint_angle = [np.pi, np.pi, np.pi, np.pi, np.pi, np.pi, np.pi]
+        self.reset_joint_angle = [0, np.pi, 0, -np.pi/4, np.pi/2, 0, np.pi]
+        self.reset(self.reset_joint_angle)
         self.M, self.D, self.J = self.getDynamicsInfos()
         print('M:', self.M)
         print('D:', self.D)
@@ -28,7 +31,8 @@ class Jaco():
         print('J:', self.J)
 
     def getDynamicsInfo(self, jointId):
-        mass, friction, inertia, pos, rot, _, _, _, _, _, _, _ = p.getDynamicsInfo(self.robotId, jointId)
+        mass, friction, inertia, pos, rot, _, _, _, _, _, _, _ = p.getDynamicsInfo(
+            self.robotId, jointId)
         return mass, friction, inertia
 
     def getDynamicsInfos(self):
@@ -44,22 +48,27 @@ class Jaco():
         for i in range(len(self.joint_id_list)):
             mass = self.M[i] * np.random.normal(loc=1, scale=0.01)
             friction = self.D[i] * np.random.normal(loc=1, scale=0.01)
-            p.changeDynamics(self.robotId, self.joint_id_list[i], mass, friction)
+            p.changeDynamics(
+                self.robotId,
+                self.joint_id_list[i],
+                mass,
+                friction)
 
-    def calcIK(self, pos=[1, 1, 1], rot=[0, 0, 0]):
-        return p.calculateInverseKinematics(self.robotId, self.eeId, pos, rot)
+    def calcIK(self, pos=[1, 1, 1], rot=[np.pi/2, np.pi/2, np.pi/2]):
+        jointAngle = p.calculateInverseKinematics(self.robotId, self.eeId, pos, rot)
+        return jointAngle[:7]
 
     def calcID(self, pos, vel, acc):
         return p.calculateInverseDynamics(self.robotId, pos, vel, acc)
 
-    def reset(self):
-        reset_point = self.calcIK([-0.5, -0.5, 0.5], [0, 0, 0])
-        for i in self.joint_id_list:
-            p.resetJointState(self.robotId, i, reset_point[i])
+    def reset(self, jointAngle=[
+            np.pi, np.pi, np.pi, np.pi, np.pi, np.pi, np.pi]):
+        for i in range(len(self.joint_id_list)):
+            p.resetJointState(self.robotId, self.joint_id_list[i], jointAngle[i])
 
     def moveEndEffector(self, pos=[1, 1, 1], rot=[0, 0, 0]):
         joint_angle = self.calcIK(pos, rot)
-        self.setJointsAngle(joint_angle[:7])
+        self.setJointsAngle(joint_angle)
 
     def setJointsAngle(self, jointAngle=[
                        np.pi, np.pi, np.pi, np.pi, np.pi, np.pi, np.pi]):

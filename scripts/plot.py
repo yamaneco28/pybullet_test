@@ -1,16 +1,16 @@
 import numpy as np
 
 
-def plot_position(fig, target, observation):
-    dim = target.shape[0]
+def plot_state(fig, input, observation):
+    dim = input.shape[0]
     col = 2
     row = int(dim / col) + 1
 
     for i in range(dim):
         ax = fig.add_subplot(row, col, i + 1)
-        ax.plot(target[i], color='tab:gray', label='Ground Truth')
+        ax.plot(input[i], color='tab:gray', label='input')
         ax.plot(observation[i], color='tab:blue',
-                alpha=0.5, label='Estimated Value')
+                alpha=0.5, label='observation')
         ax.set_title('joint {}'.format(i + 1))
         if i % col == 0:
             ax.set_ylabel('')
