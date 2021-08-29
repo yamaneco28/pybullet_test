@@ -1,1 +1,1 @@
-docker-compose exec span bash
+docker-compose exec pybullet bash

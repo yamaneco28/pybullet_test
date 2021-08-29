@@ -1,7 +1,7 @@
 version: "3"
 
 services:
-  span:
+  pybullet:
     build:
       context: ./
       dockerfile: Dockerfile
@@ -9,7 +9,7 @@ services:
       - ../:/root/workspace/
       - ~/dataset:/root/dataset/
       - /tmp/.X11-unix:/tmp/.X11-unix
-    runtime: nvidia
+    # runtime: nvidia
     environment:
       NVIDIA_VISIBLE_DEVICES: all
       DISPLAY: ${DISPLAY}
