@@ -67,11 +67,13 @@ def main():
         if t < Hz * 2:
             target_pos = robot.reset_joint_angle
         elif Hz * 2 <= t < Hz * 4:
-            # target_pos = robot.calcIK(pos=[0.0, 0.0, 0.8])
-            target_pos = [np.pi, np.pi, np.pi, np.pi, np.pi, np.pi, np.pi]
+            target_pos = robot.calcIK(pos=[0.0, 0.0, 0.8])
+            # target_pos = [np.pi, np.pi, np.pi, np.pi, np.pi, np.pi, np.pi]
+            robot.grip(True)
         else:
-            # target_pos = robot.calcIK(pos=[-0.5, 0.5, 0.5])
-            target_pos = [np.pi, np.pi, np.pi, np.pi, np.pi, np.pi, np.pi]
+            target_pos = robot.calcIK(pos=[-0.5, 0.5, 0.2])
+            robot.grip(False)
+            # target_pos = [np.pi, np.pi, np.pi, np.pi, np.pi, np.pi, np.pi]
 
         # pos = [-0.6 + 0.2 * np.cos(t / 240), 0.2 * np.sin(t / 240), 0.4]
         # pos = [-0.6 + 0.2 * np.cos(t / Hz), 0.2 * np.sin(t / Hz), 0.4]
@@ -88,7 +90,7 @@ def main():
         # ])
 
         acceleration = (last_velocity - velocity) * ts
-        input = target_pos - position + acceleration
+        input = 10 * (target_pos - position) + acceleration
         robot.setJointsVelocity(input)
         last_velocity = velocity
 
