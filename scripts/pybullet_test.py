@@ -7,6 +7,7 @@ from tqdm import tqdm
 import matplotlib.pyplot as plt
 import seaborn as sns
 sns.set()
+import skvideo.io
 
 sys.path.append('.')
 sys.path.append('..')
@@ -38,9 +39,17 @@ def main():
 
     robot = Jaco()
 
-    # p.loadURDF('urdf/my_block.urdf', [-0.5, 0.5, 0.5])
+    p.loadURDF('urdf/my_block.urdf', [-0.5, 0.5, 0.5])
 
     # target_pos = [np.pi, np.pi, np.pi, np.pi, np.pi, np.pi, np.pi]
+
+    writer = skvideo.io.FFmpegWriter(
+        'result.mp4',
+        outputdict={
+            '-vb': '20M',
+            '-pix_fmt': 'yuv420p',
+        }
+    )
 
     frames = []
     position_list = []
@@ -86,9 +95,11 @@ def main():
         p.stepSimulation()
 
         if t % int(Hz / 50) == 0:
-            width, height, rgbImg, depthImg, segImg = p.getCameraImage(
-                240, 240)
-            frames.append(Image.fromarray(rgbImg))
+            width, height, rgbImg, depthImg, segImg = p.getCameraImage(640, 480)
+            # print(np.array(rgbImg))
+            # rgbImg = np.array(rgbImg, dtype=np.int8)
+            # frames.append(Image.fromarray(rgbImg))
+            writer.writeFrame(rgbImg)
 
         if t < Hz:
             continue
@@ -109,7 +120,7 @@ def main():
     target_pos_list = np.array(target_pos_list).transpose()
     target_vel_list = np.array(target_vel_list).transpose()
 
-    save_gif(frames, 'result.gif')
+    # save_gif(frames, 'result.gif')
 
     fig = plt.figure(figsize=(20, 20))
     plot_state(fig, target_pos_list, position_list)

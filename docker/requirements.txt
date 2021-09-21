@@ -8,3 +8,4 @@ scikit-learn
 torch
 wandb
 pybullet
+scikit-video
